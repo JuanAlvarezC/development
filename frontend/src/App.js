@@ -13,19 +13,27 @@ function App() {
   const [idProducto, setIdProducto] = useState(null);
 
 
-  // en este funcion obtenemos los datos 
+  // OBTENER PRODUCTOS
   const obtenerProductos = async () => {
 
-    const res = await axios.get(
-      "http://localhost:3001/productos"
-    );
+    try {
 
-    setProductos(res.data);
+      const res = await axios.get(
+        "http://localhost:3001/productos"
+      );
+
+      setProductos(res.data);
+
+    } catch (error) {
+
+      console.log(error);
+
+    }
 
   };
 
 
-  // Funcion de insertar
+  // GUARDAR O ACTUALIZAR
   const guardarProducto = async () => {
 
     const producto = {
@@ -34,45 +42,64 @@ function App() {
       stock
     };
 
-    if(editando){
+    try {
 
-      await axios.put(
-        `http://localhost:3001/productos/${idProducto}`,
-        producto
-      );
+      if (editando) {
 
-      setEditando(false);
+        await axios.put(
+          `http://localhost:3001/productos/${idProducto}`,
+          producto
+        );
 
-    } else {
+        alert("Producto actualizado");
 
-      await axios.post(
-        "http://localhost:3001/productos",
-        producto
-      );
+        setEditando(false);
+
+      } else {
+
+        const res = await axios.post(
+          "http://localhost:3001/productos",
+          producto
+        );
+
+        alert(res.data.mensaje);
+
+      }
+
+      limpiarFormulario();
+
+      obtenerProductos();
+
+    } catch (error) {
+
+      alert(error.response.data.error);
 
     }
 
-    limpiarFormulario();
-
-    obtenerProductos();
-
   };
 
 
-  
-  // funcion de Eliminar 
+  // ELIMINAR
   const eliminarProducto = async (id) => {
 
-    await axios.delete(
-      `http://localhost:3001/productos/${id}`
-    );
+    try {
 
-    obtenerProductos();
+      await axios.delete(
+        `http://localhost:3001/productos/${id}`
+      );
+
+      obtenerProductos();
+
+    } catch (error) {
+
+      console.log(error);
+
+    }
 
   };
 
 
-  // CARGAR DATOS
+  // CARGAR DATOS PARA EDITAR
   const editarProducto = (producto) => {
 
     setNombre(producto.nombre);
@@ -86,11 +113,16 @@ function App() {
   };
 
 
+  // LIMPIAR FORMULARIO
   const limpiarFormulario = () => {
 
     setNombre("");
     setPrecio("");
     setStock("");
+
+    setIdProducto(null);
+
+    setEditando(false);
 
   };
 
@@ -104,7 +136,7 @@ function App() {
 
   return (
 
-    <div style={{padding: "20px"}}>
+    <div style={{ padding: "20px" }}>
 
       <h1>CRUD Productos</h1>
 
@@ -117,6 +149,8 @@ function App() {
       <br /><br />
 
       <input
+        type="number"
+        min="0"
         placeholder="Precio"
         value={precio}
         onChange={(e) => setPrecio(e.target.value)}
@@ -125,6 +159,8 @@ function App() {
       <br /><br />
 
       <input
+        type="number"
+        min="0"
         placeholder="Stock"
         value={stock}
         onChange={(e) => setStock(e.target.value)}
@@ -136,8 +172,8 @@ function App() {
 
         {
           editando
-          ? "Actualizar"
-          : "Guardar"
+            ? "Actualizar"
+            : "Guardar"
         }
 
       </button>
